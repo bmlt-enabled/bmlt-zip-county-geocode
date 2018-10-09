@@ -12,11 +12,11 @@ $root_server = "";
 $meetings_respone = get($root_server . "/client_interface/json/?switcher=GetSearchResults");
 $meetings = json_decode($meetings_respone);
 
-$template_delete_county = "DELETE FROM "
-	. $table_prefix . '_comdef_meetings_data WHERE `key`="location_sub_province" AND meetingid_bigint='
+$template_delete_county = "DELETE FROM " . $table_prefix
+ . '_comdef_meetings_data WHERE `key`="location_sub_province" AND meetingid_bigint='
 	. '%s' .";\n";
-$template_insert_county = "INSERT INTO "
-	. $table_prefix . '_comdef_meetings_data (meetingid_bigint, field_prompt, `key`, lang_enum, visibility, data_string) VALUES ('
+$template_insert_county = "INSERT INTO " . $table_prefix
+ . '_comdef_meetings_data (meetingid_bigint, field_prompt, `key`, lang_enum, visibility, data_string) VALUES ('
 	. '%s' . ', "County", "location_sub_province", "en", "0", "'
 	. '%s' . '");' . "\n";
 $template_delete_zip = "DELETE FROM " . $table_prefix
