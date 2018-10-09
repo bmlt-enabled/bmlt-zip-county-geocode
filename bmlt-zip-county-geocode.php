@@ -28,72 +28,55 @@ $template_insert_zip = "INSERT INTO " . $table_prefix
 	. '%s' . '")' . ";\n";
 
 foreach ($meetings as $meeting) {
-	if ($meeting->location_sub_province == "") {
 		$meeting_details = getDetailsForAddress(
 			$meeting->location_street . ", "
 			. $meeting->location_municipality . " "
 			. $meeting->location_province);
-		echo sprintf($template_delete_county, $meeting->id_bigint);
-		echo sprintf($template_insert_county, $meeting->id_bigint, $meeting_details->county);
-	}
-	else {
-		echo sprintf($template_delete_county, $meeting->id_bigint);
-		echo sprintf($template_insert_county, $meeting->id_bigint, $meeting->location_sub_province);
-	}
-	if ($meeting->location_postal_code_1 == "") {
-		$meeting_details = getDetailsForAddress(
-			$meeting->location_street . ", "
-			. $meeting->location_municipality . " "
-			. $meeting->location_province);
-		echo sprintf($template_delete_zip, $meeting->id_bigint);
-		echo sprintf($template_insert_zip, $meeting->id_bigint, $meeting_details->postal_code);
-	}
-	else {
-		echo sprintf($template_delete_zip, $meeting->id_bigint);
-		echo sprintf($template_insert_zip, $meeting->id_bigint, $meeting->location_postal_code_1);
-	}
+		$output_sql = sprintf($template_delete_county, $meeting->id_bigint)
+			. sprintf($template_insert_county, $meeting->id_bigint, $meeting_details->county)
+			. sprintf($template_delete_zip, $meeting->id_bigint)
+			. sprintf($template_insert_zip, $meeting->id_bigint, $meeting_details->postal_code);
+		print($output_sql);
 }
 
 function getDetailsForAddress($address) {
 	$details = new Details();
-    if (strlen($address) > 0) {
-        $map_details_response = get($GLOBALS['google_maps_endpoint']
-            . "&address="
-            . urlencode($address)
-            . "&components=" . urlencode($GLOBALS['location_lookup_bias']));
-        $map_details = json_decode($map_details_response);
+	if (strlen($address) > 0) {
+		$map_details_response = get($GLOBALS['google_maps_endpoint']
+			. "&address="
+			. urlencode($address)
+			. "&components=" . urlencode($GLOBALS['location_lookup_bias']));
+		$map_details = json_decode($map_details_response);
 		foreach($map_details->results as $results) {
 			foreach($results->address_components as $address_components) {
-        		if(isset($address_components->types) && $address_components->types[0] == 'postal_code') {
+				if(isset($address_components->types) && $address_components->types[0] == 'postal_code') {
 					$details->postal_code  = $address_components->long_name;
-		        }
+				}
 				if(isset($address_components->types) && $address_components->types[0] == 'administrative_area_level_2') {
-					$details->county  	   = $address_components->long_name;
-        		}
-		
-    		}
+					$details->county  	   = str_replace ( ' County', '', $address_components->long_name);
+				}
+			}
 		}	
-    }
-    return $details;
+	}
+	return $details;
 }
 
 function get($url) {
-    error_log($url);
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $url);
-    curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/4.0 (compatible; MSIE 5.01; Windows NT 5.0) +bmltgeo' );
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-    $data = curl_exec($ch);
-    $errorno = curl_errno($ch);
-    curl_close($ch);
-    if ($errorno > 0) {
-        throw new Exception(curl_strerror($errorno));
-    }
-
-    return $data;
+	error_log($url);
+	$ch = curl_init();
+	curl_setopt($ch, CURLOPT_URL, $url);
+	curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/4.0 (compatible; MSIE 5.01; Windows NT 5.0) +bmltgeo' );
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+	$data = curl_exec($ch);
+	$errorno = curl_errno($ch);
+	curl_close($ch);
+	if ($errorno > 0) {
+		throw new Exception(curl_strerror($errorno));
+	}
+	return $data;
 }
 
 class Details {
-    public $postal_code;
-    public $county;
+	public $postal_code;
+	public $county;
 }
