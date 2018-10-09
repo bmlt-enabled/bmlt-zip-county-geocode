@@ -26,15 +26,19 @@ $template_insert_zip = "INSERT INTO " . $table_prefix
 	. '%s' . '")' . ";\n";
 
 foreach ($meetings as $meeting) {
-		$meeting_details = getDetailsForAddress(
-			$meeting->location_street . ", "
+		$meeting_address = $meeting->location_street . ", "
 			. $meeting->location_municipality . " "
-			. $meeting->location_province);
-		$output_sql = sprintf($template_delete_county, $meeting->id_bigint)
-			. sprintf($template_insert_county, $meeting->id_bigint, $meeting_details->county)
-			. sprintf($template_delete_zip, $meeting->id_bigint)
-			. sprintf($template_insert_zip, $meeting->id_bigint, $meeting_details->postal_code);
-		print($output_sql);
+			. $meeting->location_province;
+		$meeting_details = getDetailsForAddress($meeting_address);
+		if (count($meeting_details->postal_code) > 0) {
+			$output_sql = sprintf($template_delete_county, $meeting->id_bigint)
+				. sprintf($template_insert_county, $meeting->id_bigint, $meeting_details->county)
+				. sprintf($template_delete_zip, $meeting->id_bigint)
+				. sprintf($template_insert_zip, $meeting->id_bigint, $meeting_details->postal_code);
+			print($output_sql);
+		}	else {
+				print("-- Could not geocode for address: " . $meeting_address . " for meeting id: " . $meeting->id_bigint . "\n");
+			}
 }
 
 function getDetailsForAddress($address) {
