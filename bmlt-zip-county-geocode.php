@@ -1,12 +1,10 @@
 <?
 // CONFIGURATION
-// Google Stuff
+$table_prefix = "na";  // Server Default
+$root_server = "";
 $google_maps_api_key = "";
 $google_maps_endpoint = "https://maps.googleapis.com/maps/api/geocode/json?key=" . trim($google_maps_api_key);
 $location_lookup_bias = "country:us";
-// BMLT Stuff
-$table_prefix = "na";  // Server Default
-$root_server = "";
 // END CONFIGURATION
 
 $meetings_respone = get($root_server . "/client_interface/json/?switcher=GetSearchResults");
