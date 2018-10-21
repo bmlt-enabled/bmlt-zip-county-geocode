@@ -19,3 +19,5 @@ Once you are ready run it
 `php bmlt-zip-county-geocode.php`
 
 You will get a list of `INSERT` queries to run on your root server MySQL.  Run them.
+
+after running you may want to do a search to see if anylines contain `Could not geocode for address` and remove those lines. then you could go into your BMLT and see what went wrong with them, most likely address data is way out of wack or very generic.
