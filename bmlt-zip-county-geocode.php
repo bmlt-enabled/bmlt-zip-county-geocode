@@ -1,4 +1,4 @@
-<?
+<?php
 // CONFIGURATION
 $table_prefix = "na";  // Server Default
 $root_server = "";
@@ -7,8 +7,13 @@ $google_maps_endpoint = "https://maps.googleapis.com/maps/api/geocode/json?key="
 $location_lookup_bias = "country:us"; // Default for US
 // END CONFIGURATION
 
-$meetings_respone = get($root_server . "/client_interface/json/?switcher=GetSearchResults");
-$meetings = json_decode($meetings_respone);
+try {
+    $meetings_response = get($root_server . "/client_interface/json/?switcher=GetSearchResults");
+    $meetings = json_decode($meetings_response);
+} catch (Exception $e) {
+    echo 'Caught exception: ',  $e->getMessage(), "\n";
+    exit;
+}
 
 $template_delete_county = "DELETE FROM " . $table_prefix
     . '_comdef_meetings_data WHERE `key`="location_sub_province" AND meetingid_bigint='
@@ -30,7 +35,7 @@ foreach ($meetings as $meeting) {
             . $meeting->location_municipality . " "
             . $meeting->location_province;
         $meeting_details = getDetailsForAddress($meeting_address);
-        if (count($meeting_details->postal_code) > 0) {
+        if ($meeting_details->postal_code) {
             $output_sql = sprintf($template_delete_county, $meeting->id_bigint)
                 . sprintf($template_insert_county, $meeting->id_bigint, $meeting_details->county)
                 . sprintf($template_delete_zip, $meeting->id_bigint)
@@ -44,11 +49,16 @@ foreach ($meetings as $meeting) {
 function getDetailsForAddress($address) {
     $details = new Details();
     if (strlen($address) > 0) {
-        $map_details_response = get($GLOBALS['google_maps_endpoint']
-            . "&address="
-            . urlencode($address)
-            . "&components=" . urlencode($GLOBALS['location_lookup_bias']));
-        $map_details = json_decode($map_details_response);
+        try {
+            $map_details_response = get($GLOBALS['google_maps_endpoint']
+                . "&address="
+                . urlencode($address)
+                . "&components=" . urlencode($GLOBALS['location_lookup_bias']));
+            $map_details = json_decode($map_details_response);
+        } catch (Exception $e) {
+            echo 'Caught exception: ',  $e->getMessage(), "\n";
+            exit;
+        }
         foreach($map_details->results as $results) {
             foreach($results->address_components as $address_components) {
                 if(isset($address_components->types) && $address_components->types[0] == 'postal_code') {
@@ -70,10 +80,9 @@ function get($url) {
     curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/4.0 (compatible; MSIE 5.01; Windows NT 5.0) +bmltgeo' );
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
     $data = curl_exec($ch);
-    $errorno = curl_errno($ch);
     curl_close($ch);
-    if ($errorno > 0) {
-        throw new Exception(curl_strerror($errorno));
+    if(curl_errno($ch)){
+        throw new Exception(curl_error($ch));
     }
     return $data;
 }

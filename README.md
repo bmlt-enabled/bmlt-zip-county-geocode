@@ -16,7 +16,11 @@ the default is `country:us`
 
 Once you are ready run it
 
-`php bmlt-zip-county-geocode.php`
+`php bmlt-zip-county-geocode.php` 
+
+or to send the output directly to a file 
+
+`php bmlt-zip-county-geocode.php > geocode.sql`
 
 You will get a list of `INSERT` queries to run on your root server MySQL.  Run them.
 
