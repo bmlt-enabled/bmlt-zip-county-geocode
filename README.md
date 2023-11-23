@@ -1,27 +1,70 @@
 # bmlt-zip-county-geocode
 
-*Backup your database, the maintainers of this script cannot be held responsible for things that could go wrong.*
+# Geocode Updater (Zip + County)
 
-This will geocode the zip and county data.  You will need to set 3 configuration values at the top of bmlt-zip-county-geocode.php.
+The Geocode Updater is a PHP script designed to update zip and county meeting location data based on geocoding information from the Google Maps API. This script is useful for maintaining accurate location data for meetings in a database.
+
+## Prerequisites
+
+Before using this script, you'll need the following:
+
+- **MySQL Database**: Make sure you have access to the MySQL database where your meeting location data is stored.
+
+- **Google Maps API Key**: Obtain a valid Google Maps API key with Geocoding enabled. You can get one from the [Google Cloud Console](https://console.cloud.google.com/).
+
+## Configuration
+
+You need to configure the script by setting the following parameters at the top of `GeocodeUpdater` class:
+
+- `$tablePrefix`: The database table prefix for your MySQL server.
+
+- `$googleMapsApiKey`: Your Google Maps API key.
+
+- `$rootServer`: The root server URL where your BMLT installation is hosted.
+
+- `$locationLookupBias`: Optional parameter used for better geocoding results. You can customize it according to your requirements. Default is `'country:us'`.
+
+## Running the Script
+
+1. Create an instance of `GeocodeUpdater` with your configuration settings:
 
 ```php
-$table_prefix = "";  // database prefix for your MySQL sever
-$google_maps_api_key = "";
-$root_server = "";
-$location_lookup_bias = ""; // Used for better geocoding results
+$geocodeUpdater = new GeocodeUpdater(
+    'your_table_prefix',
+    'your_root_server',
+    'your_google_maps_api_key',
+    'your_location_lookup_bias'
+);
 ```
 
-more info on location_lookup_bias options can be found here. https://developers.google.com/maps/documentation/geocoding/intro#ComponentFiltering
-the default is `country:us`
+2. Run the script by calling the `run` method:
 
-Once you are ready run it
+```php
+$geocodeUpdater->run();
+```
 
-`php bmlt-zip-county-geocode.php` 
+This will trigger the process of fetching meeting data, geocoding addresses, and generating SQL statements for updating the database.
 
-or to send the output directly to a file 
+3. You can choose to print the SQL output to the console or redirect it to a file:
 
-`php bmlt-zip-county-geocode.php > geocode.sql`
+To print to the console:
 
-You will get a list of `INSERT` queries to run on your root server MySQL.  Run them.
+```bash
+php GeocodeUpdater.php
+```
 
-after running you may want to do a search to see if anylines contain `Could not geocode for address` and remove those lines. then you could go into your BMLT and see what went wrong with them, most likely address data is way out of wack or very generic.
+To save the SQL output to a file:
+
+```bash
+php GeocodeUpdater.php > geocode.sql
+```
+
+## Additional Information
+
+After running the script, you may want to review the generated SQL queries. Some lines may contain "Could not geocode for address," indicating that geocoding failed for specific addresses. You can investigate these cases to ensure accurate meeting location data.
+
+## Disclaimer
+
+Backup your database before running this script, as the maintainers cannot be held responsible for any issues that may arise during the geocoding and data update process.
+
+Happy geocoding!
